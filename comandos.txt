@@ -1,0 +1,58 @@
+sudo journalctl -u k3s-agent -f
+sudo systemctl stop k3s-agent
+
+# 1️⃣ Destruir VMs de Vagrant
+cd c:\Users\david\Documents\42\inception_of_things\p1
+vagrant destroy -f
+rm -r .vagrant
+
+# 2️⃣ Listar todas las VMs en VirtualBox
+VBoxManage list vms
+
+# 3️⃣ Si ves "dapariciS" o "dapariciSW", elimínalas completamente
+VBoxManage unregistervm dapariciS --delete
+VBoxManage unregistervm dapariciSW --delete
+
+# 4️⃣ Limpiar redes virtuales si existen
+VBoxManage list hostonlyifs
+
+# 5️⃣ Si quieres ser más agresivo, elimina la carpeta de VirtualBox
+rm -r "C:\Users\david\VirtualBox VMs\dapariciS"
+rm -r "C:\Users\david\VirtualBox VMs\dapariciSW"
+
+# ¿Está realmente corriendo K3s?
+sudo systemctl is-active k3s
+
+# ¿Cuál es el estado del API?
+sudo systemctl status k3s
+
+# ¿Hay espacio en disco?
+df -h
+
+# ¿Hay suficiente memoria?
+free -h
+
+# ¿Los certificados existen?
+ls -la /var/lib/rancher/k3s/server/tls/
+
+# ¿K3s está completamente operativo?
+sudo systemctl status k3s
+
+# ¿Cuánto tiempo lleva corriendo?
+sudo systemctl status k3s | grep Active
+
+# ¿El API responde?
+sudo k3s kubectl get nodes
+
+# ¿Los puertos están escuchando?
+sudo ss -tlnp | grep 6443
+sudo ss -tlnp | grep 6444
+
+# ¿Los certificados son válidos?
+sudo curl -k https://127.0.0.1:6443/api
+
+# gestion de incopatibilidades
+si virtualbox da problemas con los mod de kvm
+    - lsmod | grep kvm                         chequear cuales hay
+    - sudo modprobe -r kvm_intel kvm_amd kvm   eliminarlos
+    - correr vagrant de nuevo

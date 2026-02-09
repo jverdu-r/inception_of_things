@@ -1,0 +1,55 @@
+PART 3 — k3d + Argo CD (deploy, troubleshoot, test)
+
+SETUP
+1) Install k3d, kubectl, docker (if missing).
+2) From p3/scripts:
+   chmod +x bootstrap.sh create-app.sh
+   ./bootstrap.sh
+
+GITHUB REPO
+3) Push manifests to your GitHub repo (folder name must match path).
+4) Edit argocd/application.yaml:
+   - repoURL: https://github.com/<user>/<repo>.git
+   - path: manifests
+5) Apply app:
+   ./create-app.sh
+
+DEPLOY / VERIFY
+6) Check Argo CD app:
+   kubectl -n argocd get applications
+7) Check namespaces and pods:
+   kubectl get ns
+   kubectl -n dev get pods,svc
+
+TROUBLESHOOT
+- App stuck Unknown:
+  kubectl -n argocd describe application playground
+  kubectl -n argocd logs deployment/argocd-repo-server --tail=200
+  kubectl -n argocd annotate application playground argocd.argoproj.io/refresh=hard --overwrite
+
+- ImagePullBackOff:
+  kubectl -n dev describe pod -l app=playground
+  (Fix image tag in manifests and push to repo)
+
+- Port-forward fails:
+  kubectl -n dev get pods
+  (Pod must be Running)
+
+TEST
+8) Port-forward service:
+   kubectl -n dev port-forward svc/playground 8081:80
+9) Open browser:
+   http://localhost:8081
+Expected: {"status":"ok", "message":"v1"}
+
+STOP / DELETE
+- Stop port-forward: Ctrl+C in the terminal running it.
+- Stop the cluster:
+   k3d cluster stop iot-p3
+- Start it again:
+   k3d cluster start iot-p3
+- Delete the cluster:
+   k3d cluster delete iot-p3
+- Remove all Argo/app resources without deleting the cluster:
+   kubectl -n argocd delete application playground
+   kubectl delete ns dev
